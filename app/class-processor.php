@@ -58,7 +58,7 @@ class Processor extends \WP_CLI_Command {
 		}
 
 		$active_plugins = get_option( 'active_plugins' );
-		$position       = array_search( objectiv_plugin__BISECT_SELF, $active_plugins );
+		$position       = array_search( OBJECTIV_PLUGIN_BISECT_SELF, $active_plugins );
 		unset( $active_plugins[ $position ] );
 
 		$offset = 0;
@@ -72,12 +72,12 @@ class Processor extends \WP_CLI_Command {
 
 		$this->debug();
 
-		\WP_CLI::success( 'Performance Bisect session started. Plugins to test: ' . $this->count_remaining() );
+		\WP_CLI::success( 'Plugin Bisect session started. Plugins to test: ' . $this->count_remaining() );
 	}
 
 	function end( $args, $assoc_args ) {
 		$this->clean_up();
-		\WP_CLI::success( 'Performance Bisect session ended. Everything is back to normal.' );
+		\WP_CLI::success( 'Plugin Bisect session ended. Everything is back to normal.' );
 	}
 
 	function good( $args, $assoc_args ) {

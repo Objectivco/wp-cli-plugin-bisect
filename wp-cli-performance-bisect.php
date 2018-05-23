@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace ObjectivPluginBisect;
 
-define('objectiv_plugin__BISECT_SELF', plugin_basename(__FILE__) );
+define('OBJECTIV_PLUGIN_BISECT_SELF', plugin_basename(__FILE__) );
 
 /**
  * Autoloader
