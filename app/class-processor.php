@@ -1,5 +1,5 @@
 <?php
-namespace Objectiv_PerformanceBisect\App;
+namespace ObjectivPluginBisect\App;
 
 class Processor extends \WP_CLI_Command {
 	/**
@@ -37,27 +37,28 @@ class Processor extends \WP_CLI_Command {
 					break;
 				case 'end':
 					$this->end( $args, $assoc_args );
+					break;
 				default:
-					$this->default();
+					$this->default_command();
 					break;
 			}
 		}
 	}
 
 	function debug() {
-		$to_test  = get_option( 'objectiv_performance_bisect_to_test' );
-		$untested = get_option( 'objectiv_performance_bisect_untested' );
+		$to_test  = get_option( 'objectiv_plugin_bisect_to_test' );
+		$untested = get_option( 'objectiv_plugin_bisect_untested' );
 		\WP_CLI::debug('To test: ' . print_r($to_test, true) );
 		\WP_CLI::debug('Untested: ' . print_r($untested, true) );
 	}
 
 	function start( $args, $assoc_args ) {
-		if ( get_option( 'objectiv_performance_bisect_to_test' ) !== false && $assoc_args['force'] !== 'true' ) {
-			\WP_CLI::error( 'A performance-bisect session is already running. Override with --force=true' );
+		if ( get_option( 'objectiv_plugin_bisect_to_test' ) !== false && $assoc_args['force'] !== 'true' ) {
+			\WP_CLI::error( 'A plugin-bisect session is already running. Override with --force=true' );
 		}
 
 		$active_plugins = get_option( 'active_plugins' );
-		$position       = array_search( OBJECTIV_PERFORMANCE_BISET_SELF, $active_plugins );
+		$position       = array_search( objectiv_plugin__BISECT_SELF, $active_plugins );
 		unset( $active_plugins[ $position ] );
 
 		$offset = 0;
@@ -66,8 +67,8 @@ class Processor extends \WP_CLI_Command {
 			$offset = 1;
 		}
 
-		update_option( 'objectiv_performance_bisect_to_test', array_slice( $active_plugins, 0, count( $active_plugins ) / 2 + $offset ) );
-		update_option( 'objectiv_performance_bisect_untested', array_slice( $active_plugins, count( $active_plugins ) / 2 + $offset ) );
+		update_option( 'objectiv_plugin_bisect_to_test', array_slice( $active_plugins, 0, count( $active_plugins ) / 2 + $offset ) );
+		update_option( 'objectiv_plugin_bisect_untested', array_slice( $active_plugins, count( $active_plugins ) / 2 + $offset ) );
 
 		$this->debug();
 
@@ -80,9 +81,8 @@ class Processor extends \WP_CLI_Command {
 	}
 
 	function good( $args, $assoc_args ) {
-		// This indicates one of the plugins in objectiv_performance_bisect_disable is bad
-		$to_test  = get_option( 'objectiv_performance_bisect_to_test' );
-		$untested = get_option( 'objectiv_performance_bisect_untested' );
+		// This indicates one of the plugins in objectiv_plugin_bisect_disable is bad
+		$to_test  = get_option( 'objectiv_plugin_bisect_to_test' );
 
 		if ( count( $to_test ) == 1 ) {
 			$this->clean_up();
@@ -95,19 +95,19 @@ class Processor extends \WP_CLI_Command {
 		if ( count($to_test) % 2 != 0 ) {
 			$offset = 1;
 		}
-		update_option( 'objectiv_performance_bisect_to_test', array_slice( $to_test, 0, count( $to_test ) / 2 + $offset ) );
-		update_option( 'objectiv_performance_bisect_untested', array_slice( $to_test, count( $to_test ) / 2 + $offset ) );
+		update_option( 'objectiv_plugin_bisect_to_test', array_slice( $to_test, 0, count( $to_test ) / 2 + $offset ) );
+		update_option( 'objectiv_plugin_bisect_untested', array_slice( $to_test, count( $to_test ) / 2 + $offset ) );
 
 		$this->debug();
 
 		\WP_CLI::line( "Great! Let's keep going! Try again and mark the result as good or bad. Plugins to test: " . $this->count_remaining() );
-		\WP_CLI::line( '   wp performance-bisect good|bad' );
+		\WP_CLI::line( '   wp plugin-bisect good|bad' );
 	}
 
 	function bad( $args, $assoc_args ) {
-		// This indicates *none* of the plugins in objectiv_performance_bisect_disable are bad
-		$to_test  = get_option( 'objectiv_performance_bisect_to_test' );
-		$untested = get_option( 'objectiv_performance_bisect_untested' );
+		// This indicates *none* of the plugins in objectiv_plugin_bisect_disable are bad
+		$to_test  = get_option( 'objectiv_plugin_bisect_to_test' );
+		$untested = get_option( 'objectiv_plugin_bisect_untested' );
 
 		if ( count( $to_test ) == 1 && count($untested) == 1 ) {
 			$this->clean_up();
@@ -115,34 +115,34 @@ class Processor extends \WP_CLI_Command {
 			exit();
 		}
 
-		update_option( 'objectiv_performance_bisect_to_test', $to_test   = $untested );
-		update_option( 'objectiv_performance_bisect_untested', $untested = [] );
+		update_option( 'objectiv_plugin_bisect_to_test', $to_test   = $untested );
+		update_option( 'objectiv_plugin_bisect_untested', $untested = [] );
 
 		$this->debug();
 
 		\WP_CLI::line( 'Ok, good to know! Try again and mark the result as good or bad. Plugins to test: ' . $this->count_remaining() );
-		\WP_CLI::line( '   wp performance-bisect good|bad' );
+		\WP_CLI::line( '   wp plugin-bisect good|bad' );
 	}
 
 	function clean_up() {
-		delete_option( 'objectiv_performance_bisect_to_test' );
-		delete_option( 'objectiv_performance_bisect_untested' );
+		delete_option( 'objectiv_plugin_bisect_to_test' );
+		delete_option( 'objectiv_plugin_bisect_untested' );
 	}
 
 	function count_remaining() {
-		$to_test  = get_option( 'objectiv_performance_bisect_to_test' );
-		$untested = get_option( 'objectiv_performance_bisect_untested' );
+		$to_test  = get_option( 'objectiv_plugin_bisect_to_test' );
+		$untested = get_option( 'objectiv_plugin_bisect_untested' );
 
 		return count( $to_test ) + count( $untested );
 	}
 
-	function default() {
+	function default_command() {
 		$message_lines = array(
-			'Performance Bsiect requires at least one additional command',
-			'   wp performance-bisect start',
-			'   wp performance-bisect good',
-			'   wp performance-bisect bad',
-			'   wp performance-bisect end',
+			'Plugin Bisect requires at least one additional command',
+			'   wp plugin-bisect start',
+			'   wp plugin-bisect good',
+			'   wp plugin-bisect bad',
+			'   wp plugin-bisect end',
 		);
 
 		\WP_CLI::error_multi_line( $message_lines );
